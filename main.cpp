@@ -13,7 +13,7 @@ using namespace arma;
 
 void ReadInput(string filename)
 {
-	cout << "Not implemented yet!\n";
+	cout << "Data reading function not implemented yet!\n";
 }
 
 int main()
@@ -28,12 +28,13 @@ int main()
 	ReadInput("InputFile.mat");
 
     //------Initialization part-------------------
-	mat X = randu<mat>(5,5);  // This to be replaced by input data matrix M;
+	mat Mtrain = randu<mat>(5,5);  // This to be replaced by input data matrix M;
+	mat Mt = randu<mat>(5,5);
 
 	mat U,V,P0_cap,Ptrain_cap,Tt_cap;
 	vec s;
 
-	svd(U,s,V,X);
+	svd(U,s,V,Mtrain);
 
 	float sigvalsum = accu(s); // Calculate the sum of the singular values
 	float bsigvalsum = 0;
@@ -58,7 +59,17 @@ int main()
 	d = 10*r_cap;
 	Ptrain_cap = P0_cap;
 
-	cout << Ptrain_cap << endl << d << endl;
+	cout << "Initialization done!\nr_cap = "<< r_cap << endl;
+	cout << "Starting recovery and update phase!\n";
+
+	// When t > t_train
+	while(true)
+	{
+		//Perpendicular projection
+		mat I = eye(P0_cap.n_rows,P0_cap.n_rows);
+		mat Phit_cap = I - (P0_cap * P0_cap.t());
+		mat y_t = Phit_cap * Mt;
+	}
 
 	return 0;
 }
