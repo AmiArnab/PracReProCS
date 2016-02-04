@@ -16,6 +16,36 @@ void ReadInput(string filename)
 	cout << "Data reading function not implemented yet!\n";
 }
 
+bool NoSupportChange(mat t_cap_t_2,mat t_cap_t_1)
+{
+	float noofcomelem = 0, frac = 0;
+	for(unsigned int i=0;i<t_cap_t_2.n_cols;++i)
+	{
+		for(unsigned int j=0;j<t_cap_t_1.n_cols;++j)
+		{
+			vec t2 = t_cap_t_2.col(i);
+			vec t1 = t_cap_t_1.col(j);
+			umat comp = (t2 == t1);
+			//rowvec res = sum(comp,0);
+			if(res.at(0)== t2.size())
+			{
+				noofcomelem = noofcomelem + 1;
+			}
+		}
+	}
+
+	frac = noofcomelem/t_cap_t_1.n_cols;
+
+	if(frac < 0.5 )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 int main()
 {
 	cout << "Starting program...\n";
@@ -63,13 +93,13 @@ int main()
 	cout << "Starting recovery and update phase!\n";
 
 	// When t > t_train
-	while(true)
-	{
+	//while(true)
+	//{
 		//Perpendicular projection
 		mat I = eye(P0_cap.n_rows,P0_cap.n_rows);
 		mat Phit_cap = I - (P0_cap * P0_cap.t());
 		mat y_t = Phit_cap * Mt;
-	}
+	//}
 
 	return 0;
 }
