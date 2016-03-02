@@ -20,18 +20,20 @@ void ReadInput(string filename)
 bool NoSupportChange(mat t_cap_t_2,mat t_cap_t_1)
 {
 	float noofcomelem = 0, frac = 0;
+	int res;
 	for(unsigned int i=0;i<t_cap_t_2.n_cols;++i)
 	{
+		res = 0;
 		for(unsigned int j=0;j<t_cap_t_1.n_cols;++j)
 		{
 			vec t2 = t_cap_t_2.col(i);
 			vec t1 = t_cap_t_1.col(j);
-			umat comp = (t2 == t1);
-			/*rowvec res = sum(comp,0);
-			if(res.at(0)== t2.size())
+			uvec comp = (t2 == t1);
+			res = sum(comp);
+			if(res != 0) // CHANGE, if equal, then sum = 1, else 0
 			{
 				noofcomelem = noofcomelem + 1;
-			}*/
+			}
 		}
 	}
 
@@ -62,7 +64,19 @@ int Thresh(mat Tt,mat St_cs, double omega)
 
 double SupCardDiff(mat Tt_capold,mat Tt_cap)
 {
-	cout << "Not implemented yet!\n";
+
+	int res;
+	for(unsigned int i=0;i<Tt_capold.n_cols;++i)
+	{
+		res = 0;
+		vec t2 = Tt_capold.col(i);
+		for(unsigned int j=0;j<Tt_cap.n_cols;++j)
+		{
+			vec t1 = Tt_cap.col(j);
+			uvec comp = (t2 == t1);
+			res = sum(comp);
+		}
+	}
 	return 0;
 }
 
@@ -74,8 +88,7 @@ int Wl1Minimization(mat St_cs,mat y_t,mat Phit_cap,double epsilon,double lambda)
 
 int Cardinality(mat Tt_capold)
 {
-	cout << "Not implemented yet!\n";
-	return 0;
+	return Tt_capold.n_cols;
 }
 
 int Prune(mat Tadd_cap,mat St_cs,long card)
@@ -98,6 +111,9 @@ int main()
 	float b = 0.95; // for b% singular values
 	int r_cap = 0; // Initialized to 0 currently
 	int d = 0; // Initialized to 0 currently
+	int alpha = 20; // Update interval
+	long t = 100,t_train=40;
+
 	//------Reading input data--------------------
 	ReadInput("InputFile.mat");
 
@@ -133,6 +149,8 @@ int main()
 	r_cap = rank(P0_cap);
 	d = 10*r_cap;
 	Ptrain_cap = P0_cap;
+	Tt_cap = zeros<mat>(1,1);
+	Tt_capold = zeros<mat>(1,1);
 
 	cout << "Initialization done!\nr_cap = "<< r_cap << endl;
 	cout << "Starting recovery and update phase!\n";
@@ -157,6 +175,7 @@ int main()
 			l1Minimization(St_cs,y_t,Phit_cap,epsilon);
 			sqomega = (norm(Mt) * norm(Mt))/Mt.n_rows;
 			omega = sqrt(sqomega);
+			Tt_capold = Tt_cap;
 			Thresh(Tt_cap,St_cs,omega);
 		}
 		else
@@ -170,9 +189,37 @@ int main()
 			LS(Stadd_cap,y_t,Phit_cap,Tadd_cap);
 			sqomega = (norm(Mt) * norm(Mt))/Mt.n_rows;
 			omega = sqrt(sqomega);
+			Tt_capold = Tt_cap;
 			Thresh(Tt_cap,Stadd_cap,omega);
 		}
 		LS(St_cap,y_t,Phit_cap,Tt_cap);
+
+		//Estimate Lt
+		Lt_cap = Mt - St_cap;
+
+		//Update Pt
+
+		if((t-t_train)/alpha == 0)
+		{
+			mat Utemp,Vtemp;
+			vec stemp;
+			svd(Utemp,stemp,Vtemp,Mt);
+
+			double tempsigvalsum = accu(s); // Calculate the sum of the singular values
+			double tempbsigvalsum = 0;
+			int tempbsigvalidx = 0;
+
+			for(unsigned int i=0; i < stemp.size();++i)
+				{
+					tempbsigvalsum +=stemp.at(i);
+					if(tempbsigvalsum/tempsigvalsum > r_cap)
+					{
+						tempbsigvalidx = i;
+						break;
+					}
+				}
+			P0_cap = Utemp.cols(0,tempbsigvalidx-1);
+		}
 
 	//}
 	return 0;
