@@ -66,6 +66,10 @@ double SupCardDiff(mat Tt_capold,mat Tt_cap)
 {
 
 	int res;
+	float cardratio = 0;
+	int Ttoldcard = Tt_capold.n_cols;
+	int Ttcard = Tt_cap.n_cols;
+	int numercard = Ttoldcard;
 	for(unsigned int i=0;i<Tt_capold.n_cols;++i)
 	{
 		res = 0;
@@ -75,9 +79,13 @@ double SupCardDiff(mat Tt_capold,mat Tt_cap)
 			vec t1 = Tt_cap.col(j);
 			uvec comp = (t2 == t1);
 			res = sum(comp);
+			if(res == comp.size())
+			{
+				--numercard;
+			}
 		}
 	}
-	return 0;
+	return numercard/Ttcard;
 }
 
 int Wl1Minimization(mat St_cs,mat y_t,mat Phit_cap,double epsilon,double lambda)
